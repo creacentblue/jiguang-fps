@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="utf-8">
+<title>寂光回路 · 浮士德工作室 Faustus Studio</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+/*CSS*/
+</style></head><body>
+<canvas id="gl"></canvas><canvas id="hud"></canvas>
+<div id="vig"></div><div id="hurt"></div><div id="flash"></div>
+<div id="hudw" class="hide">
+  <div id="obj"><b id="objT">目标</b><span id="objD"></span></div>
+  <div id="bossw" class="hide"><div id="bossN">回响核心</div><div class="bar"><i id="bossB"></i></div><div id="bossS"></div></div>
+  <div id="stat"><div class="row"><span>生命</span><div class="bar hp"><i id="hpB"></i></div><em id="hpT">100</em></div><div class="row"><span>护甲</span><div class="bar ar"><i id="arB"></i></div><em id="arT">0</em></div></div>
+  <div id="ammo"><div id="wname"></div><div id="wammo"><b id="am">30</b><span id="ar2">/ 150</span></div><div id="wslots"></div></div>
+  <div id="prompt" class="hide"></div>
+  <div id="prog" class="hide"><i id="progB"></i></div>
+  <div id="sub"><span id="subWho"></span><span id="subTxt"></span></div>
+  <div id="toast"></div>
+</div>
+<div id="title" class="scr">
+  <div class="logo"><div class="studio">浮士德工作室 出品<br><small style="letter-spacing:.3em;font-size:.6em;opacity:.8">FAUSTUS STUDIO</small></div><h1>寂光回路</h1><div class="en">SILENT LUMEN CIRCUIT</div></div>
+  <div class="menu">
+    <button id="bStart" class="big">开始行动</button>
+    <button id="bSet">设置</button>
+    <button id="bHelp">操作说明</button>
+  </div>
+  <div class="foot">单人 · 第一人称射击 · 约 8–12 分钟　　建议使用键盘鼠标，全屏体验更佳</div>
+</div>
+<div id="help" class="scr hide"><div class="card">
+  <h2>操作说明</h2>
+  <div class="keys">
+   <div><kbd>W A S D</kbd>移动</div><div><kbd>鼠标</kbd>视角</div><div><kbd>左键</kbd>射击</div><div><kbd>右键</kbd>开镜（按住）</div>
+   <div><kbd>空格</kbd>跳跃</div><div><kbd>Shift</kbd>冲刺</div><div><kbd>C</kbd>蹲伏（切换）</div><div><kbd>R</kbd>换弹</div>
+   <div><kbd>1 2 3 / 滚轮</kbd>切换武器</div><div><kbd>E</kbd>互动（按住）</div><div><kbd>Esc</kbd>暂停 / 设置</div><div><kbd>Q</kbd>快速切回上一把</div><div><kbd>F</kbd>全屏切换</div><div><kbd>T</kbd>手电筒</div>
+  </div>
+  <p>目标：沿途找到并关闭两个冷却节点，切断「回响」的电力，随后进入核心室，摧毁防护柱和回响核心。</p>
+  <p>提示：爆头伤害更高；敌人会被枪声吸引，也会找掩体；红色闪烁的小型机械会自爆，请优先击杀或拉开距离。</p>
+  <button class="back">返回</button></div></div>
+<div id="set" class="scr hide"><div class="card">
+  <h2>设置</h2>
+  <label>鼠标灵敏度 <output id="oSens"></output><input id="sSens" type="range" min="0.2" max="3" step="0.05"></label>
+  <label>视野 FOV <output id="oFov"></output><input id="sFov" type="range" min="60" max="100" step="1"></label>
+  <label>主音量 <output id="oVol"></output><input id="sVol" type="range" min="0" max="100" step="1"></label>
+  <label>画质预设 <select id="sQL"><option value="0">低（无阴影/泛光）</option><option value="1">中（泛光 + 手电阴影）</option><option value="2">高（实时阴影 + 反射 + MSAA）</option><option value="3">极高（2K 阴影 + 色散/胶片颗粒）</option></select></label>
+  <label>渲染分辨率 <select id="sQ"><option value="0.6">60%</option><option value="0.8">80%</option><option value="1">100%</option></select></label>
+  <label class="chk"><input id="sDyn" type="checkbox"> 动态分辨率（卡顿时自动降低）</label>
+  <label class="chk"><input id="sFlash" type="checkbox"> 手电筒（T 键切换）</label>
+  <label>难度 <select id="sDiff"><option value="0">轻松</option><option value="1">标准</option><option value="2">困难</option></select></label>
+  <label class="chk"><input id="sInv" type="checkbox"> 反转鼠标垂直方向</label>
+  <button class="back">返回</button></div></div>
+<div id="pause" class="scr hide"><div class="card">
+  <h2>已暂停</h2>
+  <button id="bResume" class="big">继续</button>
+  <button id="bPSet">设置</button>
+  <button id="bRestartCp">从检查点重来</button>
+  <button id="bQuit">回到标题</button></div></div>
+<div id="dead" class="scr hide"><div class="card red"><h2>信号中断</h2><p id="deadT">你倒下了。</p>
+  <button id="bRetry" class="big">从检查点重试</button><button id="bQuit2">回到标题</button></div></div>
+<div id="win" class="scr hide"><div class="card">
+  <div class="studio">浮士德工作室 出品<br><small style="letter-spacing:.3em;font-size:.6em;opacity:.8">FAUSTUS STUDIO</small></div><h2>回路已断 · 行动完成</h2>
+  <p class="winp">回响核心熄灭，寂光研究院重归寂静。</p>
+  <div class="rating"><span>行动评级</span><b id="wRank">A</b></div>
+  <dl><div><dt>用时</dt><dd id="wTime"></dd></div><div><dt>击毁机械</dt><dd id="wKills"></dd></div><div><dt>命中率</dt><dd id="wAcc"></dd></div><div><dt>倒下次数</dt><dd id="wDeaths"></dd></div></dl>
+  <button id="bAgain" class="big">再来一次</button><button id="bQuit3">回到标题</button></div></div>
+<div id="click" class="hide">点击画面以锁定鼠标</div>
+<script>
+/*JS*/
+</script></body></html>
