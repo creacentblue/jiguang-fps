@@ -1,10 +1,12 @@
 <!DOCTYPE html>
 <html lang="zh-CN"><head><meta charset="utf-8">
 <title>寂光回路 · 浮士德工作室 Faustus Studio</title>
-<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="author" content="Faustus Studio · 浮士德工作室">
+<meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes">
 <style>
 *{box-sizing:border-box;margin:0;padding:0;user-select:none;-webkit-user-select:none}
-html,body{width:100%;height:100%;overflow:hidden;background:#05060a;color:#dff;font-family:"Noto Sans CJK SC","Microsoft YaHei","PingFang SC","Source Han Sans SC",system-ui,sans-serif}
+html,body{width:100%;height:100%;overflow:hidden;touch-action:none;overscroll-behavior:none;-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent;background:#05060a;color:#dff;font-family:"Noto Sans CJK SC","Microsoft YaHei","PingFang SC","Source Han Sans SC",system-ui,sans-serif}
 canvas{position:fixed;left:0;top:0;width:100%;height:100%;display:block}
 #hud{pointer-events:none}
 .hide{display:none!important}
@@ -46,7 +48,8 @@ h1{font-size:104px;letter-spacing:.2em;font-weight:900;color:#fff;text-shadow:0 
 .en{letter-spacing:.7em;color:#f7c;font-size:15px;margin-top:6px;text-shadow:0 0 10px #f0c}
 .menu{display:flex;flex-direction:column;gap:12px;width:280px}
 button{font:inherit;color:#dff;background:rgba(0,20,40,.7);border:1px solid rgba(80,230,255,.6);padding:11px 24px;font-size:18px;letter-spacing:.3em;cursor:pointer;transition:.15s;text-shadow:0 0 6px #0cf;margin-top:8px}
-button:hover{background:#2ef;color:#012;box-shadow:0 0 24px #2ef;text-shadow:none}
+@media(hover:hover){button:hover{background:#2ef;color:#012;box-shadow:0 0 24px #2ef;text-shadow:none}}
+button:active{background:#2ef;color:#012;text-shadow:none}
 button.big{font-size:22px;padding:14px 24px;border-color:#2ef;background:rgba(0,70,90,.7)}
 .foot{position:absolute;bottom:22px;color:#78a;font-size:13px;letter-spacing:.1em}
 .card{width:min(640px,92vw);max-height:92vh;overflow:auto;padding:30px 38px;background:rgba(4,10,22,.92);border:1px solid rgba(80,230,255,.5);box-shadow:0 0 50px rgba(0,200,255,.2);text-align:center}
@@ -71,6 +74,64 @@ dt{color:#7ab;font-size:13px;letter-spacing:.2em}dd{font:700 24px ui-monospace,m
 .card button{display:block;margin:12px auto 0;min-width:240px}
 .menu button{margin-top:0}
 
+/* ---------- 触屏控制 ---------- */
+.card{touch-action:pan-y}
+input[type=range]{touch-action:pan-x}
+.tcx,.tkeys,.rothint{display:none}
+body.touch .tcx{display:inline}body.touch .kb{display:none}
+body.touch .tkeys{display:grid}body.touch .kkeys{display:none}
+#tc{position:fixed;inset:0;z-index:4;touch-action:none}
+.tb{position:absolute;display:flex;flex-direction:column;align-items:center;justify-content:center;border-radius:50%;
+ right:calc(var(--r)*1px + env(safe-area-inset-right));bottom:calc(var(--b)*1px + env(safe-area-inset-bottom));width:calc(var(--s)*1px);height:calc(var(--s)*1px);
+ background:rgba(0,30,50,.34);border:2px solid rgba(110,235,255,.55);color:#dff;text-shadow:0 0 6px #0cf;font-size:calc(var(--s)*.26px);letter-spacing:.05em;
+ -webkit-backdrop-filter:blur(2px);backdrop-filter:blur(2px);touch-action:none}
+.tb b{font-weight:700;pointer-events:none}.tb small{position:absolute;right:8%;top:8%;font-size:12px;color:#fd8;pointer-events:none}
+.tb.sm{font-size:calc(var(--s)*.3px)}
+.tb.on,.tb.down{background:rgba(40,230,255,.5);color:#012;text-shadow:none;border-color:#aff}
+.tb.fire{background:rgba(255,50,70,.32);border-color:rgba(255,130,140,.75)}
+.tb.fire.down{background:rgba(255,70,90,.6)}
+.tb.use{background:rgba(255,200,60,.4);border-color:#fd6;box-shadow:0 0 18px #fb4;animation:tbp 1s infinite alternate}
+@keyframes tbp{to{box-shadow:0 0 30px #fc6}}
+.fire{--r:26;--b:30;--s:96}.jump{--r:136;--b:24;--s:72}.reload{--r:134;--b:110;--s:64}.ads{--r:40;--b:140;--s:64}
+.swap{--r:222;--b:60;--s:64}.crouch{--r:216;--b:140;--s:60}.use{--r:130;--b:214;--s:76}.flash{--r:216;--b:210;--s:56}
+.pausebtn{--r:14;--s:56;top:calc(10px + env(safe-area-inset-top));bottom:auto}
+#stk{position:absolute;left:calc(34px + env(safe-area-inset-left));bottom:calc(36px + env(safe-area-inset-bottom));width:132px;height:132px;border-radius:50%;
+ background:rgba(0,30,50,.28);border:2px solid rgba(110,235,255,.45);pointer-events:none}
+#stk i{position:absolute;left:50%;top:50%;width:62px;height:62px;margin:-31px 0 0 -31px;border-radius:50%;background:rgba(110,235,255,.42);border:2px solid rgba(190,250,255,.8);transform:translate(var(--kx,0px),var(--ky,0px))}
+#stk.act{background:rgba(0,30,50,.4)}
+#rot{position:fixed;left:50%;top:calc(176px + env(safe-area-inset-top));transform:translateX(-50%);z-index:6;padding:8px 16px;background:rgba(0,0,0,.7);border:1px solid #fd6;color:#fd8;font-size:15px;pointer-events:none;white-space:nowrap}
+body.touch #hudw #stat{left:calc(24px + env(safe-area-inset-left));bottom:auto;top:96px;width:210px}
+body.touch #hudw #ammo{right:calc(14px + env(safe-area-inset-right));bottom:auto;top:76px}
+body.touch #wammo b{font-size:34px}body.touch #wammo span{font-size:16px}
+body.touch #wslots{display:none}
+body.touch #obj{left:calc(24px + env(safe-area-inset-left));top:16px;max-width:42vw;padding:6px 12px}
+body.touch #objD{font-size:14px}
+body.touch #sub{bottom:14px;max-width:31vw;font-size:13px;line-height:1.4}
+body.touch #prompt{top:56%;font-size:15px}
+body.touch #bossw{top:14px;width:min(420px,40vw)}
+body.touch .card button,body.touch .menu button{min-height:50px}
+body.touch label input[type=range]{height:34px}
+@media(orientation:portrait){
+ .fire{--r:18;--b:64;--s:92}.jump{--r:124;--b:50;--s:72}.reload{--r:18;--b:172;--s:64}.swap{--r:18;--b:250;--s:64}.crouch{--r:18;--b:328;--s:60}
+ .ads{--r:104;--b:150;--s:64}.use{--r:104;--b:232;--s:76}.flash{--r:104;--b:328;--s:56}
+ #stk{bottom:calc(70px + env(safe-area-inset-bottom))}
+ body.touch .rothint{display:block;position:absolute;bottom:56px;color:#fd8;font-size:14px;letter-spacing:.05em}
+ body.touch #hudw #stat{top:112px}
+ body.touch #sub{max-width:80vw;bottom:380px}
+ body.touch #bossw{top:76px;width:60vw}
+ body.touch #obj{max-width:56vw}
+}
+@media(max-height:480px){
+ h1{font-size:52px}.logo{margin-bottom:12px}.studio{font-size:12px;margin-bottom:4px}.en{font-size:12px}
+ .menu{flex-direction:row;width:auto;gap:10px}.menu button{min-width:140px;padding:12px 14px;font-size:17px;letter-spacing:.15em}
+ .foot{bottom:8px;font-size:12px}
+ .card{padding:14px 22px}.card h2{font-size:22px;margin-bottom:6px}.card p{margin:6px 0;line-height:1.5;font-size:14px}
+ label{margin:6px 0}.keys{gap:4px 18px;margin:6px 0;font-size:14px}
+ .card button{margin-top:8px}
+}
+@media(max-width:560px){.keys{grid-template-columns:1fr}.card{padding:18px 18px}kbd{min-width:80px}.menu{width:min(280px,80vw)}h1{font-size:54px}}
+.pausebtn b{font-size:28px}
+
 </style></head><body>
 <canvas id="gl"></canvas><canvas id="hud"></canvas>
 <div id="vig"></div><div id="hurt"></div><div id="flash"></div>
@@ -91,11 +152,17 @@ dt{color:#7ab;font-size:13px;letter-spacing:.2em}dd{font:700 24px ui-monospace,m
     <button id="bSet">设置</button>
     <button id="bHelp">操作说明</button>
   </div>
-  <div class="foot">单人 · 第一人称射击 · 约 8–12 分钟　　建议使用键盘鼠标，全屏体验更佳</div>
+  <div class="foot">单人 · 第一人称射击 · 约 8–12 分钟　　<span class="kb">建议使用键盘鼠标，全屏体验更佳</span><span class="tcx">触屏操作 · 建议横屏游玩</span></div>
+  <div class="rothint">↻ 竖屏空间较小，建议把手机横过来玩</div>
 </div>
 <div id="help" class="scr hide"><div class="card">
   <h2>操作说明</h2>
-  <div class="keys">
+  <div class="keys tkeys">
+   <div><kbd>左摇杆</kbd>移动（推到底冲刺）</div><div><kbd>右侧拖动</kbd>转动视角</div><div><kbd>开火</kbd>按住连射，可边按边拖瞄准</div><div><kbd>开镜</kbd>点按开 / 关</div>
+   <div><kbd>跳</kbd>跳跃</div><div><kbd>蹲</kbd>蹲伏（切换）</div><div><kbd>换弹</kbd>装填弹药</div><div><kbd>切枪</kbd>循环切换已拾取的武器</div>
+   <div><kbd>互动</kbd>靠近冷却节点时出现，按住</div><div><kbd>灯</kbd>手电筒开 / 关</div><div><kbd>‖</kbd>暂停 / 设置</div>
+  </div>
+  <div class="keys kkeys">
    <div><kbd>W A S D</kbd>移动</div><div><kbd>鼠标</kbd>视角</div><div><kbd>左键</kbd>射击</div><div><kbd>右键</kbd>开镜（按住）</div>
    <div><kbd>空格</kbd>跳跃</div><div><kbd>Shift</kbd>冲刺</div><div><kbd>C</kbd>蹲伏（切换）</div><div><kbd>R</kbd>换弹</div>
    <div><kbd>1 2 3 / 滚轮</kbd>切换武器</div><div><kbd>E</kbd>互动（按住）</div><div><kbd>Esc</kbd>暂停 / 设置</div><div><kbd>Q</kbd>快速切回上一把</div><div><kbd>F</kbd>全屏切换</div><div><kbd>T</kbd>手电筒</div>
@@ -105,15 +172,15 @@ dt{color:#7ab;font-size:13px;letter-spacing:.2em}dd{font:700 24px ui-monospace,m
   <button class="back">返回</button></div></div>
 <div id="set" class="scr hide"><div class="card">
   <h2>设置</h2>
-  <label>鼠标灵敏度 <output id="oSens"></output><input id="sSens" type="range" min="0.2" max="3" step="0.05"></label>
+  <label><span><span class="kb">鼠标</span>灵敏度</span> <output id="oSens"></output><input id="sSens" type="range" min="0.2" max="3" step="0.05"></label>
   <label>视野 FOV <output id="oFov"></output><input id="sFov" type="range" min="60" max="100" step="1"></label>
   <label>主音量 <output id="oVol"></output><input id="sVol" type="range" min="0" max="100" step="1"></label>
   <label>画质预设 <select id="sQL"><option value="0">低（无阴影/泛光）</option><option value="1">中（泛光 + 手电阴影）</option><option value="2">高（实时阴影 + 反射 + MSAA）</option><option value="3">极高（2K 阴影 + 色散/胶片颗粒）</option></select></label>
   <label>渲染分辨率 <select id="sQ"><option value="0.6">60%</option><option value="0.8">80%</option><option value="1">100%</option></select></label>
   <label class="chk"><input id="sDyn" type="checkbox"> 动态分辨率（卡顿时自动降低）</label>
-  <label class="chk"><input id="sFlash" type="checkbox"> 手电筒（T 键切换）</label>
+  <label class="chk"><input id="sFlash" type="checkbox"> 手电筒<span class="kb">（T 键切换）</span></label>
   <label>难度 <select id="sDiff"><option value="0">轻松</option><option value="1">标准</option><option value="2">困难</option></select></label>
-  <label class="chk"><input id="sInv" type="checkbox"> 反转鼠标垂直方向</label>
+  <label class="chk"><input id="sInv" type="checkbox"> 反转<span class="kb">鼠标</span>垂直方向</label>
   <button class="back">返回</button></div></div>
 <div id="pause" class="scr hide"><div class="card">
   <h2>已暂停</h2>
@@ -130,6 +197,19 @@ dt{color:#7ab;font-size:13px;letter-spacing:.2em}dd{font:700 24px ui-monospace,m
   <dl><div><dt>用时</dt><dd id="wTime"></dd></div><div><dt>击毁机械</dt><dd id="wKills"></dd></div><div><dt>命中率</dt><dd id="wAcc"></dd></div><div><dt>倒下次数</dt><dd id="wDeaths"></dd></div></dl>
   <button id="bAgain" class="big">再来一次</button><button id="bQuit3">回到标题</button></div></div>
 <div id="click" class="hide">点击画面以锁定鼠标</div>
+<div id="tc" class="hide">
+  <div id="stk"><i></i></div>
+  <div class="tb fire" data-a="fire"><b>开火</b></div>
+  <div class="tb jump" data-a="jump"><b>跳</b></div>
+  <div class="tb reload" data-a="reload"><b>换弹</b></div>
+  <div class="tb swap" data-a="swap"><b>切枪</b><small id="tcW">1</small></div>
+  <div class="tb ads" data-a="ads"><b>开镜</b></div>
+  <div class="tb crouch sm" data-a="crouch"><b>蹲</b></div>
+  <div class="tb use hide" data-a="use"><b>互动</b></div>
+  <div class="tb flash sm" data-a="flash"><b>灯</b></div>
+  <div class="tb pausebtn sm" data-a="pause"><b>‖</b></div>
+</div>
+<div id="rot" class="hide">↻ 横屏体验更佳</div>
 <script>
 'use strict';
 /* 寂光回路 V2 · Faustus Studio · 浮士德工作室 —— 单文件 3D FPS（自研 WebGL2/WebGL1 渲染器：阴影贴图、HDR 泛光、平面反射、程序化模型，零外部依赖） */
@@ -144,6 +224,7 @@ const CFG={sens:1,fov:78,vol:70,diff:1,inv:false,q:1,ql:-1,dyn:true,flash:true};
 try{Object.assign(CFG,JSON.parse(localStorage.getItem('jgcfg2')||'{}'))}catch(e){}
 function saveCfg(){try{localStorage.setItem('jgcfg2',JSON.stringify(CFG))}catch(e){}}
 const DBG=/[?&]test=1/.test(location.search);
+let TOUCH=!!((window.matchMedia&&matchMedia('(pointer:coarse)').matches)||/[?&]touch=1/.test(location.search));
 const QP=[
  {n:'低',sh:0,shsz:0,bloom:0,msaa:0,refl:0,bump:0,beams:0,decals:24,part:.5,post:0,lod:1},
  {n:'中',sh:1,shsz:1024,bloom:2,msaa:0,refl:0,bump:1,beams:1,decals:48,part:.8,post:1,lod:1},
@@ -784,7 +865,7 @@ function auMusic(dt,intensity){
 }
 
 /* ---------- 游戏状态 ---------- */
-const IN={keys:{},md:false,mr:false,edge:0,dx:0,dy:0};
+const IN={keys:{},md:false,mr:false,edge:0,dx:0,dy:0,ax:0,ay:0};
 const DF=[{dmg:.55,err:1.5,hp:.85},{dmg:1,err:1,hp:1},{dmg:1.35,err:.75,hp:1.2}];
 const P={x:0,y:0,z:19,vx:0,vz:0,vy:0,yaw:0,pitch:0,hp:100,ar:0,og:true,crouch:0,crouched:false,sprint:false,bob:0,stepT:0,kickP:0,heat:0,ads:0,fireCd:0,rl:0,rlT:0,swT:0,swTo:0,dead:false,roll:0,shake:0,hurtT:0,speed:0,lastCw:0,r:.34};
 const G={state:'title',time:0,kills:0,shots:0,hits:0,deaths:0,phase:0,cp:0,god:false,nodesDone:0,pylons:4,boss:null,win:false,winT:0,bot:false,enemyCount:0,said:{}};
@@ -920,10 +1001,10 @@ function updWeapon(dt){
 /* ---------- 玩家 ---------- */
 function updPlayer(dt){
   const k=IN.keys;
-  const fw=(k.KeyW?1:0)-(k.KeyS?1:0),st=(k.KeyD?1:0)-(k.KeyA?1:0);
+  const fw=clamp((k.KeyW?1:0)-(k.KeyS?1:0)+IN.ay,-1,1),st=clamp((k.KeyD?1:0)-(k.KeyA?1:0)+IN.ax,-1,1);
   P.sprint=!!(k.ShiftLeft||k.ShiftRight)&&fw>0&&!P.crouched&&P.ads<.3&&!(IN.md&&INV[cw].mag>0&&P.fireCd>-.2&&false);
   const cs=Math.cos(P.yaw),sn=Math.sin(P.yaw);
-  let wx=-sn*fw+cs*st,wz=-cs*fw-sn*st;const wl=Math.hypot(wx,wz);if(wl>0){wx/=wl;wz/=wl}
+  let wx=-sn*fw+cs*st,wz=-cs*fw-sn*st;const wl=Math.hypot(wx,wz);if(wl>1){wx/=wl;wz/=wl}
   let spd=P.crouched?2.4:P.sprint?7.1:4.7;spd*=lerp(1,.68,P.ads);if(P.rl&&INV[cw].d.id==='dmr')spd*=.9;
   const acc=P.og?13:2.6;const tx=wx*spd,tz=wz*spd;
   P.vx+=(tx-P.vx)*Math.min(1,acc*dt);P.vz+=(tz-P.vz)*Math.min(1,acc*dt);
@@ -958,7 +1039,7 @@ function updItems(dt){
       else if(it.type==='ar'){if(P.ar>=100)ok=false;else{P.ar=Math.min(100,P.ar+50);toast('护甲 +50')}}
       else if(it.type==='ammo'){const full=INV.every(w=>!w.have||w.res>=w.d.maxRes);if(full)ok=false;else{giveAmmo(1);toast('弹药补充')}}
       else if(it.type==='w_shot'||it.type==='w_dmr'){const w=INV[it.type==='w_shot'?1:2];w.have=true;w.mag=w.d.mag;w.res=Math.max(w.res,w.d.res0);toast('获得 '+w.d.name);switchTo(INV.indexOf(w));
-        if(it.type==='w_shot')say('白鹭','是裂隙-12 霰弹枪，近距离一枪一个，注意换弹。',4.5);else say('白鹭','银针精确射手步枪。右键开镜，瞄准头部。',4.5)}
+        if(it.type==='w_shot')say('白鹭','是裂隙-12 霰弹枪，近距离一枪一个，注意换弹。',4.5);else say('白鹭',TOUCH?'银针精确射手步枪。点「开镜」键瞄准头部。':'银针精确射手步枪。右键开镜，瞄准头部。',4.5)}
       if(ok){it.taken=true;SFX.pickup();addDL(it.x,.8,it.z,.6,1,.8,4,.25)}
     }
   }
@@ -1217,7 +1298,7 @@ function updLevel(dt){
     if(IN.keys.KeyE){G.near.prog+=dt/3.2;pg.classList.remove('hide');$('progB').style.width=(G.near.prog*100)+'%';pr.textContent='正在关闭冷却节点…';
       if(Math.floor(G.near.prog*10)!==G.near.pl){G.near.pl=Math.floor(G.near.prog*10);tn('sine',400+G.near.prog*800,500+G.near.prog*800,.08,.1)}
       if(G.near.prog>=1)nodeDone(G.near)}
-    else{G.near.prog=Math.max(0,G.near.prog-dt*.6);pr.textContent='按住 E 关闭冷却节点';pg.classList.add('hide')}
+    else{G.near.prog=Math.max(0,G.near.prog-dt*.6);pr.textContent=TOUCH?'按住「互动」键关闭冷却节点':'按住 E 关闭冷却节点';pg.classList.add('hide')}
     pr.classList.remove('hide');
   }else{pr.classList.add('hide');pg.classList.add('hide')}
   // 胜利
@@ -1894,9 +1975,103 @@ function drawMarkers(cam){
   }
 }
 
+/* ---------- 触屏控制（手机 / 平板） ---------- */
+const TC={roles:new Map(),sid:null,sx:0,sy:0,kx:0,ky:0,rel:{},vis:false,rotT:0,sprintV:false,wLast:-1,useVis:false};
+const TCR=58;// 摇杆半径 (px)
+function tcApplyClass(){document.body.classList.toggle('touch',TOUCH)}
+tcApplyClass();
+document.addEventListener('gesturestart',e=>e.preventDefault());
+document.addEventListener('dblclick',e=>e.preventDefault());
+function tcKey(code,on){if(on){IN.keys[code]=true;delete TC.rel[code]}else TC.rel[code]=performance.now()+90}
+function tcBtn(a,el,down){
+  if(down)el.classList.add('down');else el.classList.remove('down');
+  switch(a){
+    case'fire':IN.md=down;if(down)IN.edge=.15;break;
+    case'jump':tcKey('Space',down);break;
+    case'use':IN.keys.KeyE=down;break;
+    case'reload':if(down)startReload();break;
+    case'swap':if(down)cycleWeapon();break;
+    case'ads':if(down)IN.mr=!IN.mr;break;
+    case'crouch':if(down)toggleCrouch();break;
+    case'flash':if(down){CFG.flash=!CFG.flash;syncSet();saveCfg();SFX.click(0)}break;
+    case'pause':if(down)pauseGame();break;
+  }
+}
+function tcStick(x,y){
+  let dx=x-TC.sx,dy=y-TC.sy;const d=Math.hypot(dx,dy);if(d>TCR){dx*=TCR/d;dy*=TCR/d}
+  TC.kx=dx;TC.ky=dy;const s=$('stk').style;s.setProperty('--kx',dx+'px');s.setProperty('--ky',dy+'px');
+  const m=Math.min(1,Math.hypot(dx,dy)/TCR),dz=.12,k=m<dz?0:(m-dz)/(1-dz),a=Math.atan2(dy,dx);
+  IN.ax=Math.cos(a)*k;IN.ay=-Math.sin(a)*k;
+}
+function tcStickEnd(){
+  TC.sid=null;IN.ax=IN.ay=0;TC.kx=TC.ky=0;const e=$('stk');e.classList.remove('act');e.style.left='';e.style.bottom='';e.style.removeProperty('--kx');e.style.removeProperty('--ky');
+  if(TC.sprintV){IN.keys.ShiftLeft=false;TC.sprintV=false}
+}
+function tcReleaseAll(){
+  for(const [id,r] of TC.roles){if(r.k==='b'){tcBtn(r.a,r.el,false)}}
+  TC.roles.clear();if(TC.sid!==null)tcStickEnd();
+  document.querySelectorAll('#tc .tb.down').forEach(e=>e.classList.remove('down'));
+  IN.md=false;IN.ax=IN.ay=0;
+}
+function tcOnStart(){
+  // 点击「开始」时（用户手势内）尝试全屏并锁定横屏；失败则忽略
+  try{const d=document.documentElement;if(!document.fullscreenElement&&d.requestFullscreen){const p=d.requestFullscreen();if(p&&p.catch)p.catch(()=>{})}}catch(_){}
+  try{if(screen.orientation&&screen.orientation.lock){const p=screen.orientation.lock('landscape');if(p&&p.catch)p.catch(()=>{})}}catch(_){}
+  if(innerHeight>innerWidth)TC.rotT=6;
+}
+document.addEventListener('touchstart',e=>{
+  if(!TOUCH){TOUCH=true;tcApplyClass()}
+  if(G.state!=='playing'||!TC.vis)return;
+  for(const t of e.changedTouches){
+    const el=t.target&&t.target.closest?t.target.closest('[data-a]'):null;
+    if(el){const a=el.dataset.a;TC.roles.set(t.identifier,{k:'b',a,el,x:t.clientX,y:t.clientY});tcBtn(a,el,true)}
+    else if(TC.sid===null&&t.clientX<innerWidth*.46&&t.clientY>innerHeight*.2){
+      TC.sid=t.identifier;TC.sx=t.clientX;TC.sy=t.clientY;TC.roles.set(t.identifier,{k:'s'});
+      const s=$('stk');s.classList.add('act');s.style.left=(t.clientX-66)+'px';s.style.bottom=(innerHeight-t.clientY-66)+'px';tcStick(t.clientX,t.clientY);
+    }else TC.roles.set(t.identifier,{k:'l',x:t.clientX,y:t.clientY});
+  }
+  e.preventDefault();
+},{passive:false});
+document.addEventListener('touchmove',e=>{
+  if(G.state!=='playing')return;
+  for(const t of e.changedTouches){
+    const r=TC.roles.get(t.identifier);if(!r)continue;
+    if(r.k==='s')tcStick(t.clientX,t.clientY);
+    else if(r.k==='l'||(r.k==='b'&&r.a==='fire')){lookBy(t.clientX-r.x,t.clientY-r.y,1.8);r.x=t.clientX;r.y=t.clientY}
+  }
+  if(TC.roles.size)e.preventDefault();
+},{passive:false});
+function tcEnd(e){
+  for(const t of e.changedTouches){
+    const r=TC.roles.get(t.identifier);if(!r)continue;
+    if(r.k==='s')tcStickEnd();else if(r.k==='b')tcBtn(r.a,r.el,false);
+    TC.roles.delete(t.identifier);
+  }
+  if(TC.roles.size||e.cancelable)if(G.state==='playing'&&TC.vis)e.preventDefault();
+}
+document.addEventListener('touchend',tcEnd,{passive:false});
+document.addEventListener('touchcancel',tcEnd,{passive:false});
+document.addEventListener('visibilitychange',()=>{if(document.hidden&&G.state==='playing'&&TOUCH)pauseGame()});
+/* 每帧：显隐控制、冲刺、释放延迟的按键 */
+function tcFrame(dt){
+  const now=performance.now();
+  for(const c in TC.rel)if(now>=TC.rel[c]){IN.keys[c]=false;delete TC.rel[c]}
+  const vis=TOUCH&&G.state==='playing';
+  if(vis!==TC.vis){TC.vis=vis;$('tc').classList.toggle('hide',!vis);if(!vis)tcReleaseAll()}
+  if(!vis){if(TC.rotT>0){TC.rotT=0;$('rot').classList.add('hide')}return}
+  // 摇杆推到底 = 冲刺（开火 / 开镜时不冲刺）
+  if(TC.sid!==null){const m=Math.hypot(TC.kx,TC.ky)/TCR,sp=m>.95&&IN.ay>.6&&!IN.md&&P.ads<.3&&!P.crouched;if(sp!==TC.sprintV){TC.sprintV=sp;IN.keys.ShiftLeft=sp}}
+  const use=!!(G.near&&G.phase>=1&&!G.near.done);if(use!==TC.useVis){TC.useVis=use;$('tc').querySelector('.use').classList.toggle('hide',!use);if(!use)IN.keys.KeyE=false}
+  const adsEl=$('tc').querySelector('.ads');adsEl.classList.toggle('on',!!IN.mr);
+  $('tc').querySelector('.flash').classList.toggle('on',!!CFG.flash);
+  $('tc').querySelector('.crouch').classList.toggle('on',!!P.crouched);
+  if(cw!==TC.wLast){TC.wLast=cw;$('tcW').textContent=cw+1}
+  if(TC.rotT>0){TC.rotT-=dt;$('rot').classList.toggle('hide',!(TC.rotT>0&&innerHeight>innerWidth))}
+}
+
 /* ---------- 输入 / 界面 / 主循环 ---------- */
 let locked=false,prevScr='title';
-function lock(){if(DBG)return;try{const p=cv.requestPointerLock();if(p&&p.catch)p.catch(()=>$('click').classList.remove('hide'))}catch(e){}}
+function lock(){if(DBG||TOUCH)return;try{const p=cv.requestPointerLock();if(p&&p.catch)p.catch(()=>$('click').classList.remove('hide'))}catch(e){}}
 function show(id){$(id).classList.remove('hide')}function hide(id){$(id).classList.add('hide')}
 function pauseGame(){if(G.state!=='playing')return;G.state='paused';IN.md=false;IN.mr=false;for(const k in IN.keys)IN.keys[k]=false;show('pause');hide('click')}
 function resumeGame(){if(G.state!=='paused')return;hide('pause');hide('set');hide('click');G.state='playing';lock()}
@@ -1904,11 +2079,17 @@ document.addEventListener('pointerlockchange',()=>{locked=document.pointerLockEl
 document.addEventListener('pointerlockerror',()=>{if(G.state==='playing')show('click')});
 $('click').addEventListener('click',()=>{hide('click');lock()});
 function startGame(){
-  auInit();resetGame();G.state='playing';['title','help','set','pause','dead','win'].forEach(hide);show('hudw');lock();
+  auInit();resetGame();if(TOUCH)tcOnStart();G.state='playing';['title','help','set','pause','dead','win'].forEach(hide);show('hudw');lock();
   say('白鹭','沈昼，终于连上了。寂光研究院全面断电，安保机械被「回响」接管了，别指望有人接应。',6);
   say('白鹭','先穿过大厅，进中庭。路线我会在你的视野里标出来。',5);
   toast('第一章 · 断电');
 }
+function toggleCrouch(){if(P.crouched){if(!blockedAt(P.x,P.y,P.z,P.r,1.8))P.crouched=false}else P.crouched=true}
+function lookBy(mx,my,gain){
+  const f=.0021*CFG.sens*gain*Math.tan(CFG.fov*D2R*lerp(1,INV[cw].d.fov,P.ads)/2)/Math.tan(CFG.fov*D2R/2);
+  P.yaw-=mx*f;P.pitch=clamp(P.pitch-my*f*(CFG.inv?-1:1),-1.5,1.5);IN.dx=mx;IN.dy=my;
+}
+function cycleWeapon(){let i=cw;for(let n=0;n<3;n++){i=(i+1)%3;if(INV[i].have){switchTo(i);break}}}
 function toTitle(){G.state='title';['pause','dead','win','set','help','hudw','bossw'].forEach(hide);show('title');if(document.pointerLockElement)document.exitPointerLock();resetGame()}
 $('bStart').onclick=startGame;$('bAgain').onclick=startGame;
 $('bSet').onclick=()=>{prevScr='title';hide('title');show('set')};
@@ -1940,7 +2121,7 @@ window.addEventListener('keydown',e=>{
     else if(e.code==='KeyR')startReload();
     else if(e.code==='KeyT'){CFG.flash=!CFG.flash;syncSet();saveCfg();SFX.click(0)}
     else if(e.code==='KeyQ')switchTo(P.lastCw);
-    else if(e.code==='KeyC'){if(P.crouched){if(!blockedAt(P.x,P.y,P.z,P.r,1.8))P.crouched=false}else P.crouched=true}
+    else if(e.code==='KeyC')toggleCrouch();
     else if(e.code==='KeyP'||(e.code==='Escape'&&!locked))pauseGame();
     else if(e.code==='KeyF'){try{if(document.fullscreenElement)document.exitFullscreen();else document.documentElement.requestFullscreen()}catch(_){}}
   }else if(G.state==='paused'&&(e.code==='Escape'||e.code==='KeyP')&&$('set').classList.contains('hide'))resumeGame();
@@ -1956,8 +2137,7 @@ document.addEventListener('mouseup',e=>{if(e.button===0)IN.md=false;else if(e.bu
 document.addEventListener('contextmenu',e=>e.preventDefault());
 document.addEventListener('mousemove',e=>{
   if(G.state!=='playing'||(!locked&&!DBG))return;
-  const f=.0021*CFG.sens*Math.tan(CFG.fov*D2R*lerp(1,INV[cw].d.fov,P.ads)/2)/Math.tan(CFG.fov*D2R/2);
-  P.yaw-=e.movementX*f;P.pitch=clamp(P.pitch-e.movementY*f*(CFG.inv?-1:1),-1.5,1.5);IN.dx=e.movementX;IN.dy=e.movementY;
+  lookBy(e.movementX,e.movementY,1);
 });
 document.addEventListener('wheel',e=>{
   if(G.state!=='playing')return;const dir=e.deltaY>0?1:-1;let i=cw;for(let n=0;n<3;n++){i=(i+dir+3)%3;if(INV[i].have){switchTo(i);break}}
@@ -2034,6 +2214,7 @@ function loop(ts){
   requestAnimationFrame(loop);
   try{
     const t=ts/1000;let dt=Math.min(.05,t-(loop.last||t));loop.last=t;
+    tcFrame(dt);
     if(G.state==='playing'){if(G.bot)botTick(dt);updateAll(dt)}
     IN.dx*=.6;IN.dy*=.6;
     if(flashT>0)flashT=Math.max(0,flashT-dt*.9);
@@ -2041,7 +2222,8 @@ function loop(ts){
   }catch(e){if(!errShown){errShown=true;console.error(e)}}
 }
 (function(){const m=/[?&]ql=(\d)/.exec(location.search);if(m)CFG.ql=+m[1];
-  if(CFG.ql<0||CFG.ql>3){const soft=/swiftshader|llvmpipe|software|basic render/i.test(GPUNAME),intel=/intel|mali|adreno|powervr|videocore/i.test(GPUNAME);CFG.ql=soft?0:intel?1:2}
+  if(CFG.ql<0||CFG.ql>3){const soft=/swiftshader|llvmpipe|software|basic render/i.test(GPUNAME),intel=/intel|mali|adreno|powervr|videocore/i.test(GPUNAME);CFG.ql=soft?0:intel?1:2;
+    if(TOUCH){CFG.ql=soft?0:1;if(CFG.q>.8)CFG.q=.8}}// 触屏设备默认中档画质 + 80% 分辨率
   if(DBG&&!m)CFG.ql=2;CFG.qBase=CFG.q})();
 makeTextures();buildLevel();resize();syncSet();resetGame();
 requestAnimationFrame(loop);

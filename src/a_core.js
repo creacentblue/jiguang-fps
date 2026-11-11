@@ -11,6 +11,7 @@ const CFG={sens:1,fov:78,vol:70,diff:1,inv:false,q:1,ql:-1,dyn:true,flash:true};
 try{Object.assign(CFG,JSON.parse(localStorage.getItem('jgcfg2')||'{}'))}catch(e){}
 function saveCfg(){try{localStorage.setItem('jgcfg2',JSON.stringify(CFG))}catch(e){}}
 const DBG=/[?&]test=1/.test(location.search);
+let TOUCH=!!((window.matchMedia&&matchMedia('(pointer:coarse)').matches)||/[?&]touch=1/.test(location.search));
 const QP=[
  {n:'低',sh:0,shsz:0,bloom:0,msaa:0,refl:0,bump:0,beams:0,decals:24,part:.5,post:0,lod:1},
  {n:'中',sh:1,shsz:1024,bloom:2,msaa:0,refl:0,bump:1,beams:1,decals:48,part:.8,post:1,lod:1},

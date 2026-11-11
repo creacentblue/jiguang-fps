@@ -1,6 +1,6 @@
 /* ---------- 输入 / 界面 / 主循环 ---------- */
 let locked=false,prevScr='title';
-function lock(){if(DBG)return;try{const p=cv.requestPointerLock();if(p&&p.catch)p.catch(()=>$('click').classList.remove('hide'))}catch(e){}}
+function lock(){if(DBG||TOUCH)return;try{const p=cv.requestPointerLock();if(p&&p.catch)p.catch(()=>$('click').classList.remove('hide'))}catch(e){}}
 function show(id){$(id).classList.remove('hide')}function hide(id){$(id).classList.add('hide')}
 function pauseGame(){if(G.state!=='playing')return;G.state='paused';IN.md=false;IN.mr=false;for(const k in IN.keys)IN.keys[k]=false;show('pause');hide('click')}
 function resumeGame(){if(G.state!=='paused')return;hide('pause');hide('set');hide('click');G.state='playing';lock()}
@@ -8,11 +8,17 @@ document.addEventListener('pointerlockchange',()=>{locked=document.pointerLockEl
 document.addEventListener('pointerlockerror',()=>{if(G.state==='playing')show('click')});
 $('click').addEventListener('click',()=>{hide('click');lock()});
 function startGame(){
-  auInit();resetGame();G.state='playing';['title','help','set','pause','dead','win'].forEach(hide);show('hudw');lock();
+  auInit();resetGame();if(TOUCH)tcOnStart();G.state='playing';['title','help','set','pause','dead','win'].forEach(hide);show('hudw');lock();
   say('白鹭','沈昼，终于连上了。寂光研究院全面断电，安保机械被「回响」接管了，别指望有人接应。',6);
   say('白鹭','先穿过大厅，进中庭。路线我会在你的视野里标出来。',5);
   toast('第一章 · 断电');
 }
+function toggleCrouch(){if(P.crouched){if(!blockedAt(P.x,P.y,P.z,P.r,1.8))P.crouched=false}else P.crouched=true}
+function lookBy(mx,my,gain){
+  const f=.0021*CFG.sens*gain*Math.tan(CFG.fov*D2R*lerp(1,INV[cw].d.fov,P.ads)/2)/Math.tan(CFG.fov*D2R/2);
+  P.yaw-=mx*f;P.pitch=clamp(P.pitch-my*f*(CFG.inv?-1:1),-1.5,1.5);IN.dx=mx;IN.dy=my;
+}
+function cycleWeapon(){let i=cw;for(let n=0;n<3;n++){i=(i+1)%3;if(INV[i].have){switchTo(i);break}}}
 function toTitle(){G.state='title';['pause','dead','win','set','help','hudw','bossw'].forEach(hide);show('title');if(document.pointerLockElement)document.exitPointerLock();resetGame()}
 $('bStart').onclick=startGame;$('bAgain').onclick=startGame;
 $('bSet').onclick=()=>{prevScr='title';hide('title');show('set')};
@@ -44,7 +50,7 @@ window.addEventListener('keydown',e=>{
     else if(e.code==='KeyR')startReload();
     else if(e.code==='KeyT'){CFG.flash=!CFG.flash;syncSet();saveCfg();SFX.click(0)}
     else if(e.code==='KeyQ')switchTo(P.lastCw);
-    else if(e.code==='KeyC'){if(P.crouched){if(!blockedAt(P.x,P.y,P.z,P.r,1.8))P.crouched=false}else P.crouched=true}
+    else if(e.code==='KeyC')toggleCrouch();
     else if(e.code==='KeyP'||(e.code==='Escape'&&!locked))pauseGame();
     else if(e.code==='KeyF'){try{if(document.fullscreenElement)document.exitFullscreen();else document.documentElement.requestFullscreen()}catch(_){}}
   }else if(G.state==='paused'&&(e.code==='Escape'||e.code==='KeyP')&&$('set').classList.contains('hide'))resumeGame();
@@ -60,8 +66,7 @@ document.addEventListener('mouseup',e=>{if(e.button===0)IN.md=false;else if(e.bu
 document.addEventListener('contextmenu',e=>e.preventDefault());
 document.addEventListener('mousemove',e=>{
   if(G.state!=='playing'||(!locked&&!DBG))return;
-  const f=.0021*CFG.sens*Math.tan(CFG.fov*D2R*lerp(1,INV[cw].d.fov,P.ads)/2)/Math.tan(CFG.fov*D2R/2);
-  P.yaw-=e.movementX*f;P.pitch=clamp(P.pitch-e.movementY*f*(CFG.inv?-1:1),-1.5,1.5);IN.dx=e.movementX;IN.dy=e.movementY;
+  lookBy(e.movementX,e.movementY,1);
 });
 document.addEventListener('wheel',e=>{
   if(G.state!=='playing')return;const dir=e.deltaY>0?1:-1;let i=cw;for(let n=0;n<3;n++){i=(i+dir+3)%3;if(INV[i].have){switchTo(i);break}}
@@ -138,6 +143,7 @@ function loop(ts){
   requestAnimationFrame(loop);
   try{
     const t=ts/1000;let dt=Math.min(.05,t-(loop.last||t));loop.last=t;
+    tcFrame(dt);
     if(G.state==='playing'){if(G.bot)botTick(dt);updateAll(dt)}
     IN.dx*=.6;IN.dy*=.6;
     if(flashT>0)flashT=Math.max(0,flashT-dt*.9);
@@ -145,7 +151,8 @@ function loop(ts){
   }catch(e){if(!errShown){errShown=true;console.error(e)}}
 }
 (function(){const m=/[?&]ql=(\d)/.exec(location.search);if(m)CFG.ql=+m[1];
-  if(CFG.ql<0||CFG.ql>3){const soft=/swiftshader|llvmpipe|software|basic render/i.test(GPUNAME),intel=/intel|mali|adreno|powervr|videocore/i.test(GPUNAME);CFG.ql=soft?0:intel?1:2}
+  if(CFG.ql<0||CFG.ql>3){const soft=/swiftshader|llvmpipe|software|basic render/i.test(GPUNAME),intel=/intel|mali|adreno|powervr|videocore/i.test(GPUNAME);CFG.ql=soft?0:intel?1:2;
+    if(TOUCH){CFG.ql=soft?0:1;if(CFG.q>.8)CFG.q=.8}}// 触屏设备默认中档画质 + 80% 分辨率
   if(DBG&&!m)CFG.ql=2;CFG.qBase=CFG.q})();
 makeTextures();buildLevel();resize();syncSet();resetGame();
 requestAnimationFrame(loop);

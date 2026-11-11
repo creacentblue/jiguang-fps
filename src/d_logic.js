@@ -1,5 +1,5 @@
 /* ---------- 游戏状态 ---------- */
-const IN={keys:{},md:false,mr:false,edge:0,dx:0,dy:0};
+const IN={keys:{},md:false,mr:false,edge:0,dx:0,dy:0,ax:0,ay:0};
 const DF=[{dmg:.55,err:1.5,hp:.85},{dmg:1,err:1,hp:1},{dmg:1.35,err:.75,hp:1.2}];
 const P={x:0,y:0,z:19,vx:0,vz:0,vy:0,yaw:0,pitch:0,hp:100,ar:0,og:true,crouch:0,crouched:false,sprint:false,bob:0,stepT:0,kickP:0,heat:0,ads:0,fireCd:0,rl:0,rlT:0,swT:0,swTo:0,dead:false,roll:0,shake:0,hurtT:0,speed:0,lastCw:0,r:.34};
 const G={state:'title',time:0,kills:0,shots:0,hits:0,deaths:0,phase:0,cp:0,god:false,nodesDone:0,pylons:4,boss:null,win:false,winT:0,bot:false,enemyCount:0,said:{}};
@@ -135,10 +135,10 @@ function updWeapon(dt){
 /* ---------- 玩家 ---------- */
 function updPlayer(dt){
   const k=IN.keys;
-  const fw=(k.KeyW?1:0)-(k.KeyS?1:0),st=(k.KeyD?1:0)-(k.KeyA?1:0);
+  const fw=clamp((k.KeyW?1:0)-(k.KeyS?1:0)+IN.ay,-1,1),st=clamp((k.KeyD?1:0)-(k.KeyA?1:0)+IN.ax,-1,1);
   P.sprint=!!(k.ShiftLeft||k.ShiftRight)&&fw>0&&!P.crouched&&P.ads<.3&&!(IN.md&&INV[cw].mag>0&&P.fireCd>-.2&&false);
   const cs=Math.cos(P.yaw),sn=Math.sin(P.yaw);
-  let wx=-sn*fw+cs*st,wz=-cs*fw-sn*st;const wl=Math.hypot(wx,wz);if(wl>0){wx/=wl;wz/=wl}
+  let wx=-sn*fw+cs*st,wz=-cs*fw-sn*st;const wl=Math.hypot(wx,wz);if(wl>1){wx/=wl;wz/=wl}
   let spd=P.crouched?2.4:P.sprint?7.1:4.7;spd*=lerp(1,.68,P.ads);if(P.rl&&INV[cw].d.id==='dmr')spd*=.9;
   const acc=P.og?13:2.6;const tx=wx*spd,tz=wz*spd;
   P.vx+=(tx-P.vx)*Math.min(1,acc*dt);P.vz+=(tz-P.vz)*Math.min(1,acc*dt);
@@ -173,7 +173,7 @@ function updItems(dt){
       else if(it.type==='ar'){if(P.ar>=100)ok=false;else{P.ar=Math.min(100,P.ar+50);toast('护甲 +50')}}
       else if(it.type==='ammo'){const full=INV.every(w=>!w.have||w.res>=w.d.maxRes);if(full)ok=false;else{giveAmmo(1);toast('弹药补充')}}
       else if(it.type==='w_shot'||it.type==='w_dmr'){const w=INV[it.type==='w_shot'?1:2];w.have=true;w.mag=w.d.mag;w.res=Math.max(w.res,w.d.res0);toast('获得 '+w.d.name);switchTo(INV.indexOf(w));
-        if(it.type==='w_shot')say('白鹭','是裂隙-12 霰弹枪，近距离一枪一个，注意换弹。',4.5);else say('白鹭','银针精确射手步枪。右键开镜，瞄准头部。',4.5)}
+        if(it.type==='w_shot')say('白鹭','是裂隙-12 霰弹枪，近距离一枪一个，注意换弹。',4.5);else say('白鹭',TOUCH?'银针精确射手步枪。点「开镜」键瞄准头部。':'银针精确射手步枪。右键开镜，瞄准头部。',4.5)}
       if(ok){it.taken=true;SFX.pickup();addDL(it.x,.8,it.z,.6,1,.8,4,.25)}
     }
   }
@@ -432,7 +432,7 @@ function updLevel(dt){
     if(IN.keys.KeyE){G.near.prog+=dt/3.2;pg.classList.remove('hide');$('progB').style.width=(G.near.prog*100)+'%';pr.textContent='正在关闭冷却节点…';
       if(Math.floor(G.near.prog*10)!==G.near.pl){G.near.pl=Math.floor(G.near.prog*10);tn('sine',400+G.near.prog*800,500+G.near.prog*800,.08,.1)}
       if(G.near.prog>=1)nodeDone(G.near)}
-    else{G.near.prog=Math.max(0,G.near.prog-dt*.6);pr.textContent='按住 E 关闭冷却节点';pg.classList.add('hide')}
+    else{G.near.prog=Math.max(0,G.near.prog-dt*.6);pr.textContent=TOUCH?'按住「互动」键关闭冷却节点':'按住 E 关闭冷却节点';pg.classList.add('hide')}
     pr.classList.remove('hide');
   }else{pr.classList.add('hide');pg.classList.add('hide')}
   // 胜利

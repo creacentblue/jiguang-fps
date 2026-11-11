@@ -10,6 +10,13 @@
 |---|---|---|
 | ![](screenshots/combat.png) | ![](screenshots/hub.png) | ![](screenshots/fx.png) |
 
+## 手机触屏 / Mobile
+支持手机触屏操作（建议横屏）。Touch controls supported on phones (landscape recommended).
+
+| 横屏交互 | 竖屏游玩 |
+|---|---|
+| ![](screenshots/fps_land_interact.png) | ![](screenshots/fps_port_play.png) |
+
 ## 本地运行 / Run locally
 下载 `index.html`，用浏览器直接打开即可，无需联网。Download `index.html` and open it in a modern browser — no internet needed.
 
